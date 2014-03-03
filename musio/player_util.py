@@ -118,6 +118,9 @@ class AudioPlayer(object):
 
         """
 
+        if not self.playing:
+            return repr(self)
+
         # Wait for the stream to open.
         while 'info' not in self._msg_dict: pass
 
@@ -183,6 +186,10 @@ class AudioPlayer(object):
             otherwise print a message and exit.
 
             """
+
+            if not self._filename:
+                print("No file.")
+                return None
 
             if not self.playing:
                 print("%(filename)s is not playing." % self._msg_dict)
@@ -284,6 +291,9 @@ class AudioPlayer(object):
 
         """
 
+        if not os_isfile(filename):
+            return False
+
         # Stop the current file from playing.
         self.stop()
 
@@ -299,9 +309,6 @@ class AudioPlayer(object):
         self._msg_dict['filename'] = filename
         self._msg_dict.update(kwargs)
 
-        if not os_isfile(filename):
-            return False
-
         # Pause it so when we call play later it will start the player
         # but not the audio playback.  Call play again to start audio
         # playback.
@@ -315,6 +322,9 @@ class AudioPlayer(object):
         """ play() -> Start playback.
 
         """
+
+        if not self._filename:
+            return None
 
         if not self._msg_dict.get('playing', False):
             # Set playing to True for the child process.
@@ -334,6 +344,9 @@ class AudioPlayer(object):
         """ stop() -> Stop playback.
 
         """
+
+        if not self._filename:
+            return None
 
         if self._msg_dict.get('playing', False):
             # Stop playback.
