@@ -80,7 +80,7 @@ class DummyFile(AudioIO):
             self._closed = True
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Returns audio data with its format converted if
         necessary.
 

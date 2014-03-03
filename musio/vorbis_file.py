@@ -209,7 +209,7 @@ class VorbisFile(AudioIO):
         return vorbis_file
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size) -> Reads size amount of data and returns it.  If
         size is None then read a buffer size.
 
@@ -309,7 +309,7 @@ class VorbisFile(AudioIO):
         return vorbis_file
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(str) -> Encodes and writes str to an ogg file.
 
         """

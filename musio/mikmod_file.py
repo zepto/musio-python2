@@ -252,7 +252,7 @@ class MikModFile(AudioIO):
             self._closed = True
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ Continue playing the module.
 
         """
@@ -272,11 +272,11 @@ class MikModFile(AudioIO):
             data = b''
             while len(data) < size:
                 read_size = _mikmod.VC_WriteBytes(byte_buffer, size)
-                data += byte_buffer
+                data += _mikmod.string_at(byte_buffer, read_size)
 
             return data
         except Exception as err:
-            print("Error reading: (%s)" % err, flush=True)
+            print("Error reading: (%s)" % err)
             return b''
 
     def _load_info(self, module):

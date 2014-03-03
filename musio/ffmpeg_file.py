@@ -233,7 +233,7 @@ class FFmpegFile(AudioIO):
         return avr
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.  If
         size is None read buffer_size of data.
 

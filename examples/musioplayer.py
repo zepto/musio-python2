@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -24,7 +24,7 @@
 """
 
 
-def main(args: dict) -> int:
+def main(args):
     """ Play args['filename'] args['loops'] times.
 
     """
@@ -113,7 +113,7 @@ def main(args: dict) -> int:
             if quit_command: break
 
     except Exception as err:
-        print("Error: %s", flush=True)
+        print("Error: %s")
     finally:
         # Always stop the player.
         if player.playing:

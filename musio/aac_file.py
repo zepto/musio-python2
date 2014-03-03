@@ -279,7 +279,7 @@ class AACFile(AudioIO):
         return aac_decoder
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size) -> Reads size amount of data and returns it.
 
         """

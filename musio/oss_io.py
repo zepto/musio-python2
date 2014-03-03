@@ -74,7 +74,7 @@ class Oss(DevIO):
         self._dsp = self._open()
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write to the pcm device.
 
         """
@@ -82,7 +82,7 @@ class Oss(DevIO):
         return self._dsp.write(data)
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=0) -> Read length bytes from input.
 
         """

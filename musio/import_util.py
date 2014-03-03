@@ -219,7 +219,7 @@ class LazyImp(object):
         return sys.modules[fullname]
 
 
-def _build_mod_list(mod_path: list) -> list:
+def _build_mod_list(mod_path):
     """ _build_mod_list(mod_path, suffix) -> Add all the paths in mod_path to
     sys.path and return a list of all modules in sys.path ending in suffix.
 

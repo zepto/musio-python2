@@ -144,7 +144,7 @@ class Portaudio(DevIO):
         return int(self._rate)
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write to the pcm device.
 
         """
@@ -181,7 +181,7 @@ class Portaudio(DevIO):
         return datalen
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size) -> Read length data from stream.
 
         """

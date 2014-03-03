@@ -218,7 +218,7 @@ class Espeak(DevIO):
             time_sleep(0.02)
 
     @io_wrapper
-    def write(self, data: str) -> int:
+    def write(self, data):
         """ write(data) -> Make espeak say data if it is printable.
 
         """
@@ -229,8 +229,8 @@ class Espeak(DevIO):
         # Convert data to type str.
         if type(data) is int:
             data = str(data)
-        elif type(data) is bytes:
-            data = data.decode()
+        elif type(data) is unicode:
+            data = data.encode()
         elif type(data) in (list, tuple, range):
             data = ' '.join([str(i) for i in data])
         elif type(data) is not str:

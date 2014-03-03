@@ -74,6 +74,8 @@ class AgwFile(AudioIO):
 
         self._raw_file = self._open(filename)
 
+        self._length = 1
+
     def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
 
@@ -127,8 +129,8 @@ class AgwFile(AudioIO):
 
         # Start playing.
         _agw.music_play(1, agw_id)
-        # _agw.ady_channel_control(0, -2, 2, agw_id)
-        # _agw.ady_channel_play(0, 0, _agw.c_float(60.0), _agw.c_float(1.0))
+        _agw.ady_channel_control(0, -2, 2, agw_id)
+        _agw.ady_channel_play(0, 0, _agw.c_float(60.0), _agw.c_float(1.0))
 
         self._agw_id = agw_id
 
@@ -138,7 +140,7 @@ class AgwFile(AudioIO):
         return open(self._raw_filename, 'rb', buffering=0)
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.  If
         size is None then read a buffer size.
 

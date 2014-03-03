@@ -137,7 +137,7 @@ class Mp4File(AudioIO):
         self._tags_dict = self._info_dict = info_dict
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.  If
         size is None then read a buffer size.
 

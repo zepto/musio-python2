@@ -140,7 +140,7 @@ class AudioIO(RawIOBase):
 
         self._width = self._depth // 8
 
-        self._length = -1
+        self._length = 1
 
         self._bigendian = False
         self._unsigned = False
@@ -155,7 +155,7 @@ class AudioIO(RawIOBase):
 
         self._info_dict = {'name': name}
 
-    def __str__(self) -> str:
+    def __str__(self):
         """ __str__ -> Return a string representation of the module
         information.
 
@@ -186,7 +186,7 @@ class AudioIO(RawIOBase):
 
         return '\n'.join(str_list)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
 
         """
@@ -246,7 +246,7 @@ class AudioIO(RawIOBase):
 
         return self
 
-    def __next__(self) -> bytes:
+    def __next__(self):
         """ Return the next buffer.
 
         """
@@ -258,21 +258,21 @@ class AudioIO(RawIOBase):
         else:
             return data
 
-    def writable(self) -> bool:
+    def writable(self):
         """ Return wether this device is writable.
 
         """
 
         return 'w' in self._mode
 
-    def readable(self) -> bool:
+    def readable(self):
         """ Return wether this device is readable.
 
         """
 
         return 'r' in self._mode
 
-    def seekable(self) -> bool:
+    def seekable(self):
         """ The file is seekable if self._length is > 0
 
         """
@@ -280,7 +280,7 @@ class AudioIO(RawIOBase):
         return self._length >= 0
 
     @io_wrapper
-    def seek(self, offset: int, whence: int = SEEK_SET) -> int:
+    def seek(self, offset, whence=SEEK_SET):
         """ seek(offset, whence) -> Seek to position in mod.
 
         """
@@ -295,7 +295,7 @@ class AudioIO(RawIOBase):
         return self.position
 
     @io_wrapper
-    def tell(self) -> int:
+    def tell(self):
         """ tell -> Returns the current position.
 
         """
@@ -303,7 +303,7 @@ class AudioIO(RawIOBase):
         return self.position
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size) -> Reads size amount of data and returns it.
 
         """
@@ -334,7 +334,7 @@ class AudioIO(RawIOBase):
         return data
 
     @io_wrapper
-    def readinto(self, barray: bytearray) -> int:
+    def readinto(self, barray):
         """ Read up to len(barray) into bytearray barray and return the number
         of bytes read otherwise returns None.
 
@@ -358,7 +358,7 @@ class AudioIO(RawIOBase):
         return bytes_read
 
     @io_wrapper
-    def readline(self, size: int = -1) -> str:
+    def readline(self, size=-1):
         """ readline(size=-1) -> Returns the next line or size bytes.
 
         """
@@ -371,7 +371,7 @@ class AudioIO(RawIOBase):
             return self.read(size)
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write data to file.
 
         """
@@ -394,21 +394,21 @@ class AudioIO(RawIOBase):
 
         raise NotImplementedError("Open method not implemented.")
 
-    def to_seconds(self, position: int) -> int:
+    def to_seconds(self, position):
         """ Convert the provided position/length to seconds.
 
         """
 
         return position
 
-    def _set_position(self, position: int):
+    def _set_position(self, position):
         """ Change the position of playback.
 
         """
 
         pass
 
-    def _get_position(self) -> int:
+    def _get_position(self):
         """ Returns the current position.
 
         """
@@ -416,7 +416,7 @@ class AudioIO(RawIOBase):
         return 0
 
     @property
-    def loops(self) -> int:
+    def loops(self):
         """ How many times the file should loop.
 
         """
@@ -424,7 +424,7 @@ class AudioIO(RawIOBase):
         return self._loops
 
     @loops.setter
-    def loops(self, value: int):
+    def loops(self, value):
         """ Set how many times the file should loop.
 
         To play forever use a value of -1.
@@ -435,7 +435,7 @@ class AudioIO(RawIOBase):
 
     @property
     @io_wrapper
-    def position(self) -> int:
+    def position(self):
         """ Get the current position.
 
         """
@@ -444,7 +444,7 @@ class AudioIO(RawIOBase):
 
     @position.setter
     @io_wrapper
-    def position(self, position: int):
+    def position(self, position):
         """ Set the position.
 
         """
@@ -452,7 +452,7 @@ class AudioIO(RawIOBase):
         self._set_position(int(position))
 
     @property
-    def mode(self) -> str:
+    def mode(self):
         """ Get the mode.
 
         """
@@ -460,7 +460,7 @@ class AudioIO(RawIOBase):
         return self._mode
 
     @property
-    def loop_count(self) -> int:
+    def loop_count(self):
         """ How many times the stream has looped.
 
         """
@@ -468,7 +468,7 @@ class AudioIO(RawIOBase):
         return self._loop_count
 
     @property
-    def length(self) -> int:
+    def length(self):
         """ Get the length.
 
         """
@@ -476,7 +476,7 @@ class AudioIO(RawIOBase):
         return self._length
 
     @property
-    def floatp(self) -> int:
+    def floatp(self):
         """ Get the if the audio is floating point.
 
         """
@@ -484,7 +484,7 @@ class AudioIO(RawIOBase):
         return self._floatp
 
     @property
-    def depth(self) -> int:
+    def depth(self):
         """ Get the current bit depth.
 
         """
@@ -492,7 +492,7 @@ class AudioIO(RawIOBase):
         return self._depth
 
     @property
-    def rate(self) -> int:
+    def rate(self):
         """ The current sample rate.
 
         """
@@ -500,7 +500,7 @@ class AudioIO(RawIOBase):
         return self._rate
 
     @property
-    def channels(self) -> int:
+    def channels(self):
         """ Get the current channel count.
 
         """
@@ -508,7 +508,7 @@ class AudioIO(RawIOBase):
         return self._channels
 
     @property
-    def buffer_size(self) -> int:
+    def buffer_size(self):
         """ Get the current buffer size.
 
         """
@@ -516,7 +516,7 @@ class AudioIO(RawIOBase):
         return self._buffer_size
 
     @property
-    def unsigned(self) -> bool:
+    def unsigned(self):
         """ Whether the player is producing signed data.
 
         """
@@ -524,7 +524,7 @@ class AudioIO(RawIOBase):
         return self._unsigned
 
     @property
-    def bigendian(self) -> bool:
+    def bigendian(self):
         """ Whether the player is using bigendian.
 
         """
@@ -579,7 +579,7 @@ class DevIO(RawIOBase):
 
         self._closed = True
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
 
         """
@@ -588,28 +588,28 @@ class DevIO(RawIOBase):
 
         return '%s(%s)' % (self.__class__.__name__, repr_str)
 
-    def __getitem__(self, item) -> object:
+    def __getitem__(self, item):
         """ Return the attribute.
 
         """
 
         return getattr(self, item)
 
-    def writable(self) -> bool:
+    def writable(self):
         """ Return wether this device is writable.
 
         """
 
         return 'w' in self._mode
 
-    def readable(self) -> bool:
+    def readable(self):
         """ Return wether this device is readable.
 
         """
 
         return 'r' in self._mode
 
-    def seekable(self) -> bool:
+    def seekable(self):
         """ Is this stream seekable.
 
         """
@@ -618,35 +618,35 @@ class DevIO(RawIOBase):
         return False
 
     @property
-    def closed(self) -> bool:
+    def closed(self):
         """ Return true if closed.
 
         """
 
         return self._closed
 
-    def _open(self) -> object:
+    def _open(self):
         """ open -> Open the pcm audio output.
 
         """
 
         raise NotImplementedError("Open method not implemented.")
 
-    def __iter__(self) -> iter:
+    def __iter__(self):
         """ Returns an iter of this object.
 
         """
 
         return self
 
-    def __next__(self) -> str:
+    def __next__(self):
         """ Return the next buffer.
 
         """
 
         return self.read(self._buffer_size)
 
-    def __enter__(self) -> object:
+    def __enter__(self):
         """ Provides the ability to use pythons with statement.
 
         """
@@ -657,7 +657,7 @@ class DevIO(RawIOBase):
             print(err)
             return None
 
-    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+    def __exit__(self, exc_type, exc_value, traceback):
         """ Close the pcm when finished.
 
         """
@@ -670,7 +670,7 @@ class DevIO(RawIOBase):
             return False
 
     @io_wrapper
-    def read(self, length: int) -> bytes:
+    def read(self, length):
         """ read(length) -> Read from pcm.
 
         """
@@ -678,7 +678,7 @@ class DevIO(RawIOBase):
         raise NotImplementedError("Read method not implemented.")
 
     @io_wrapper
-    def readinto(self, barray: bytearray) -> int:
+    def readinto(self, barray):
         """ Read up to len(barray) into bytearray barray and return the number
         of bytes read otherwise returns None.
 
@@ -699,7 +699,7 @@ class DevIO(RawIOBase):
         return bytes_read
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write to the pcm device.
 
         """
@@ -707,7 +707,7 @@ class DevIO(RawIOBase):
         raise NotImplementedError("Write method not implemented.")
 
     @property
-    def mode(self) -> str:
+    def mode(self):
         """ Get the mode.
 
         """
@@ -715,7 +715,7 @@ class DevIO(RawIOBase):
         return self._mode
 
     @property
-    def depth(self) -> int:
+    def depth(self):
         """ The current depth rate.
 
         """
@@ -723,7 +723,7 @@ class DevIO(RawIOBase):
         return self._depth
 
     @property
-    def unsigned(self) -> int:
+    def unsigned(self):
         """ The sample current sample rate.
 
         """
@@ -731,7 +731,7 @@ class DevIO(RawIOBase):
         return self._unsigned
 
     @property
-    def rate(self) -> int:
+    def rate(self):
         """ The sample current sample rate.
 
         """
@@ -739,7 +739,7 @@ class DevIO(RawIOBase):
         return self._rate
 
     @property
-    def channels(self) -> int:
+    def channels(self):
         """ The number of output channels.
 
         """
@@ -747,7 +747,7 @@ class DevIO(RawIOBase):
         return self._channels
 
     @property
-    def buffer_size(self) -> int:
+    def buffer_size(self):
         """ The buffer size.
 
         """

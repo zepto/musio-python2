@@ -23,8 +23,9 @@
 
 """
 
+from __future__ import print_function
 
-def main(args: dict) -> None:
+def main(args):
     """ Encode args['filename'] times.
 
     """
@@ -32,6 +33,7 @@ def main(args: dict) -> None:
     from os.path import basename as os_basename
     from os.path import isfile as os_isfile
     from sys import stdin as sys_stdin
+    from sys import stdout as sys_stdout
     from select import select
     from time import sleep as time_sleep
     from termios import tcgetattr, tcsetattr, ECHO, ICANON, TCSANOW
@@ -46,7 +48,7 @@ def main(args: dict) -> None:
     filename = args['filename']
     output = os_basename(filename).rsplit('.')[0] + '.' + args['filetype']
     if os_isfile(output):
-        if input("Overwrite %s (y/n): " % output).lower().startswith('n'):
+        if raw_input("Overwrite %s (y/n): " % output).lower().startswith('n'):
             return
 
     # Save the current terminal state.
@@ -78,7 +80,7 @@ def main(args: dict) -> None:
             comment_dict.update(in_file._info_dict)
             for i in ['title', 'artist', 'album', 'year', 'comment',
                       'track', 'genre']:
-                if args[i]:
+                if args.get(i, ''):
                     comment_dict[i] = args[i]
 
             with open_file(output, 'w', depth=in_file.depth, rate=in_file.rate,
@@ -94,7 +96,7 @@ def main(args: dict) -> None:
                     if args['show_position']:
                         if in_file.length > 0:
                             # Calculate the percentage played.
-                            pos = (in_file.position * 100) / in_file.length
+                            pos = (in_file.position * 100) / float(in_file.length)
 
                             # Make the string.
                             pos_str = 'Position: %.2f%%' % pos
@@ -105,7 +107,8 @@ def main(args: dict) -> None:
                             # Print the string and after erasing the old
                             # one using ansi escapes.
                             print('\033[%dD\033[K%s' % (format_len, pos_str),
-                                  end='', flush=True)
+                                  end='')
+                            sys_stdout.flush()
                     out_file.write(data)
 
                     # Check for input.
@@ -122,7 +125,7 @@ def main(args: dict) -> None:
                             break
 
     except Exception as err:
-        print("Error: %s" % err, flush=True)
+        print("Error: %s" % err)
         raise(err)
     finally:
         # Re-set the terminal state.

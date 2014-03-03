@@ -553,6 +553,10 @@ class FluidsynthFile(AudioIO):
             raise IOError("Error loading midi '%s' and soundfont '%s'" % \
                           (filename, soundfont))
 
+        # Otherwise it won't be a valid file object.  
+        # (bool(self) == False)
+        self._length = 1
+
     def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
 
@@ -675,7 +679,7 @@ class FluidsynthFile(AudioIO):
         return True
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.
 
         """

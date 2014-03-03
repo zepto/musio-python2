@@ -47,16 +47,16 @@ __io_cache = {}
 DEBUG=False
 
 
-def msg_out(message: str, *args):
+def msg_out(message, *args):
     """ Print message if DEBUG is True.
 
     """
 
     if DEBUG:
-        print(message, *args)
+        print(message)
 
 
-def slice_buffer(data: bytes, size: int) -> bytes:
+def slice_buffer(data, size):
     """ slice_buffer(data, size) -> A generator that yields slices of bytes
     from the data buffer.
 
@@ -66,7 +66,7 @@ def slice_buffer(data: bytes, size: int) -> bytes:
         yield data[i:i + size]
 
 
-def _build_mod_list(mod_path: list, suffix: str, blacklist: list) -> list:
+def _build_mod_list(mod_path, suffix, blacklist):
     """ _build_mod_list(mod_path, suffix) -> Add all the paths in mod_path to
     sys.path and return a list of all modules in sys.path ending in suffix.
 
@@ -100,7 +100,7 @@ def _build_mod_list(mod_path: list, suffix: str, blacklist: list) -> list:
     return mod_list
 
 
-def _check_dependencies(dependencies: dict) -> bool:
+def _check_dependencies(dependencies):
     """ Returns True if all the dependencies pass.
 
     """
@@ -122,8 +122,8 @@ def _check_dependencies(dependencies: dict) -> bool:
     return True
 
 
-def get_codec(filename: str, mod_path: list = [], cached: bool = True,
-              blacklist: list = []) -> AudioIO:
+def get_codec(filename, mod_path=[], cached=True,
+              blacklist=[]):
     """ get_codec(filename, mod_path=[], cached=True, blacklist=[]) -> Load the
     codecs in the path and return the first one that can play the file, or the
     one with the default attribute set.
@@ -138,7 +138,7 @@ def get_codec(filename: str, mod_path: list = [], cached: bool = True,
     # Codec cache dictionary
     global __codec_cache
 
-    from urllib.parse import urlparse
+    from urlparse import urlparse
 
     from .import_util import load_lazy_import, unload_lazy_import
 
@@ -234,8 +234,8 @@ def get_codec(filename: str, mod_path: list = [], cached: bool = True,
     return codec
 
 
-def get_io(fileobj: AudioIO, mod_path: list = [], cached: bool = True,
-           blacklist: list = []) -> DevIO:
+def get_io(fileobj, mod_path=[], cached=True,
+           blacklist=[]):
     """ get_io(fileobj, mod_path=[], cached=True, blacklist=[]) -> Finds a
     audio device that can take the data read from fileobj and returns it.
 
@@ -334,8 +334,8 @@ def get_io(fileobj: AudioIO, mod_path: list = [], cached: bool = True,
     return device
 
 
-def open_file(filename: str, mode: str = 'r', mod_path: list = [],
-              **kwargs: dict) -> AudioIO:
+def open_file(filename, mode='r', mod_path=[],
+              **kwargs):
     """ open_file(filename, mode='r') -> Returns the open file.
 
     """
@@ -364,8 +364,8 @@ def open_file(filename: str, mode: str = 'r', mod_path: list = [],
     return open_codec
 
 
-def open_device(fileobj: AudioIO, mode: str = 'w', mod_path: list = [],
-                **kwargs: dict) -> DevIO:
+def open_device(fileobj, mode='w', mod_path=[],
+                **kwargs):
     """ open_device(fileobj, mode='r') -> Returns an open audio device.
 
     """
@@ -386,7 +386,7 @@ def open_device(fileobj: AudioIO, mode: str = 'w', mod_path: list = [],
 
 
 @contextmanager
-def silence(fd: "File descripter"):
+def silence(fd):
     """ silence(fd) -> Silence any output from fd.
 
     """
@@ -428,8 +428,8 @@ def silence(fd: "File descripter"):
         fd = old_fd
 
 @contextmanager
-def py_silence(new_stdout: "File descripter"=None,
-               new_stderr: "File descripter"=None):
+def py_silence(new_stdout=None,
+               new_stderr=None):
     """ py_silence(new_stdout, new_stderr) -> Silence any output from fd.  In
     python.
 

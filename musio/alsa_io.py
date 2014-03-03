@@ -99,7 +99,7 @@ class Alsa(DevIO):
 
         return '%s(%s)' % (self.__class__.__name__, repr_str)
 
-    def _check_rc(self, rc: int, func_name: str):
+    def _check_rc(self, rc, func_name):
         """ Check the rc and handle the errors.
 
         """
@@ -136,7 +136,7 @@ class Alsa(DevIO):
         return rc
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write to the pcm device.
 
         """
@@ -169,7 +169,7 @@ class Alsa(DevIO):
         return datalen
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ _read(size=0) -> Read length bytes from input.
 
         """
@@ -198,7 +198,7 @@ class Alsa(DevIO):
         # Only return size number of bytes.
         return data[:size]
 
-    def _open_pcm(self, mode: str):
+    def _open_pcm(self, mode):
         """ Returns an open pcm device opened with mode.
 
         """

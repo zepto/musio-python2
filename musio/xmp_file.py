@@ -151,7 +151,7 @@ class XMPFile(AudioIO):
 
         """
 
-        def load_list(key: str, index: str, count: int) -> list:
+        def load_list(key, index, count):
             """ _load_list(key, index, count) -> Load a list of names and
             filenames into a list.
 
@@ -196,7 +196,7 @@ class XMPFile(AudioIO):
             self._info_dict['comment'] = comment.decode('cp437', 'replace')
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.  If
         size is None read buffer_size of data.
 

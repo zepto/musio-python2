@@ -78,7 +78,7 @@ class EspeakFile(AudioIO):
     # Only reading is supported
     _supported_modes = 'r'
 
-    def __init__(self, filename: str, mode: str='r', voice: str='en-us',
+    def __init__(self, filename, mode='r', voice='en-us',
                  **kwargs):
         """ Espeak tts object.
 
@@ -104,6 +104,9 @@ class EspeakFile(AudioIO):
         _espeak.espeak_SetSynthCallback(self._espeak_synth_callback)
 
         self._closed = False
+
+        # Placeholder so bool(self) will be True.
+        self._length = 1
 
     def _open(self):
         """ _open() -> Open the classes file and set it up for read/write
@@ -169,14 +172,14 @@ class EspeakFile(AudioIO):
 
         return ret_val
 
-    def _get_position(self) -> int:
+    def _get_position(self):
         """ Returns the current position.
 
         """
 
         return self._position
 
-    def _set_position(self, position: int):
+    def _set_position(self, position):
         """ Change the position of playback.
 
         """
@@ -313,7 +316,7 @@ class EspeakFile(AudioIO):
             self._closed = True
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ Read from the data buffer.
 
         """

@@ -137,7 +137,7 @@ class MP3File(AudioIO):
 
             self._quality = quality
             self._comment_dict = comment_dict
-            if not self._comment_dict['comment']:
+            if not self._comment_dict.get('comment', ''):
                 self._comment_dict['comment'] = 'Encoded with musio.mp3_file'
 
             self._global_flags = _lame.lame_init()
@@ -187,7 +187,7 @@ class MP3File(AudioIO):
         # Update the position.
         return _mpg123.mpg123_tell(self._mpg123_handle)
 
-    def _read_open(self, filename: str):
+    def _read_open(self, filename):
         """ _read_open(filename) -> Load the specified file.
 
         """
@@ -233,7 +233,7 @@ class MP3File(AudioIO):
 
         return mpg123_handle
 
-    def _write_open(self, filename: str):
+    def _write_open(self, filename):
         """ _write_open(filename) -> Load the specified file.
 
         """
@@ -307,7 +307,7 @@ class MP3File(AudioIO):
         self._id3_dict = self._info_dict = id3_dict
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=None) -> Reads size amount of data and returns it.  If
         size is None then read a buffer size.
 
@@ -332,7 +332,7 @@ class MP3File(AudioIO):
                     self.seek(0)
                     continue
 
-            data += byte_buffer
+            data += _mpg123.string_at(byte_buffer, bytes_read.value)
 
         # Make sure we return only the number of bytes requested.
         self._data = data[size:]
@@ -340,7 +340,7 @@ class MP3File(AudioIO):
         return data[:size]
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(str) -> Encodes and writes str to an mp3 file.
 
         """
@@ -412,7 +412,7 @@ class MP3File(AudioIO):
         out_data = _lame.string_at(id3v2_tag, id3v2_len)
         self._out_file.write(out_data)
 
-    def close(self) -> bool:
+    def close(self):
         """ close -> Closes and cleans up.
 
         """
@@ -422,7 +422,7 @@ class MP3File(AudioIO):
         else:
             self._write_close()
 
-    def _read_close(self) -> bool:
+    def _read_close(self):
         """ close -> Closes reading file.
 
         """
@@ -439,7 +439,7 @@ class MP3File(AudioIO):
             except Exception as err:
                 msg_out("(%s.close) Error: %s" % (self.__class__.__name__, err))
 
-    def _write_close(self) -> bool:
+    def _write_close(self):
         """ close -> Closes writing file.
 
         """

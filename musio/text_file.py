@@ -121,7 +121,7 @@ class TextFile(AudioIO):
 
         return '%s(%s)' % (self.__class__.__name__, repr_str)
 
-    def _set_position(self, position: int):
+    def _set_position(self, position):
         """ Change the position of playback.
 
         """
@@ -131,7 +131,7 @@ class TextFile(AudioIO):
         else:
             self._index = int(position)
 
-    def _get_position(self) -> int:
+    def _get_position(self):
         """ Returns the current position.
 
         """
@@ -142,7 +142,7 @@ class TextFile(AudioIO):
             return self._index
 
     @io_wrapper
-    def write(self, data: str) -> int:
+    def write(self, data):
         """ Write data to file.
 
         """
@@ -150,7 +150,7 @@ class TextFile(AudioIO):
         return self._fileobj.write(data)
 
     @io_wrapper
-    def readline(self, size=-1) -> str:
+    def readline(self, size=-1):
         """ readline(size=-1) -> Returns the next line or size bytes.
 
         """
@@ -161,7 +161,7 @@ class TextFile(AudioIO):
             return self.read(self._buffer_size)[:size]
 
     @io_wrapper
-    def readlines(self, count=-1) -> str:
+    def readlines(self, count=-1):
         """ readlines(count=-1) -> Returns count lines/sentences if it can.
 
         """
@@ -186,7 +186,7 @@ class TextFile(AudioIO):
         return lines.replace('\n', ' ')
 
     @io_wrapper
-    def read(self, size: int) -> str:
+    def read(self, size):
         """ Return size or less ammount of text.
 
         """
