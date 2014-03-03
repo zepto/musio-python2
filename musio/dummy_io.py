@@ -68,7 +68,7 @@ class Dummy(DevIO):
         return '%s(%s)' % (self.__class__.__name__, repr_str)
 
     @io_wrapper
-    def write(self, data: bytes) -> int:
+    def write(self, data):
         """ write(data) -> Write to the pcm device.
 
         """
@@ -76,7 +76,7 @@ class Dummy(DevIO):
         return len(data)
 
     @io_wrapper
-    def read(self, size: int) -> bytes:
+    def read(self, size):
         """ read(size=0) -> Read length bytes from input.
 
         """
