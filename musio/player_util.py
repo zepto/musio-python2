@@ -28,6 +28,7 @@ from multiprocessing import Process, Manager, Pipe
 from io import SEEK_SET, SEEK_CUR, SEEK_END
 from functools import wraps as functools_wraps
 from platform import python_implementation
+from os.path import isfile as os_isfile
 
 py_imp = python_implementation()
 
@@ -286,8 +287,11 @@ class AudioPlayer(object):
         # Stop the current file from playing.
         self.stop()
 
-        # Set the new filename.
-        self._filename = filename
+        if os_isfile(filename):
+            # Set the new filename.
+            self._filename = filename
+        else:
+            return False
 
         # Reset the message dictionary so none of the old info is
         # re-used.
