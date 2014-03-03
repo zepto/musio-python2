@@ -287,11 +287,8 @@ class AudioPlayer(object):
         # Stop the current file from playing.
         self.stop()
 
-        if os_isfile(filename):
-            # Set the new filename.
-            self._filename = filename
-        else:
-            return False
+        # Set the new filename.
+        self._filename = filename
 
         # Reset the message dictionary so none of the old info is
         # re-used.
@@ -301,6 +298,9 @@ class AudioPlayer(object):
         self._msg_dict['show_position'] = self._show_position
         self._msg_dict['filename'] = filename
         self._msg_dict.update(kwargs)
+
+        if not os_isfile(filename):
+            return False
 
         # Pause it so when we call play later it will start the player
         # but not the audio playback.  Call play again to start audio
