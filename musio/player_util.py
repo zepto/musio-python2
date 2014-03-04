@@ -100,7 +100,7 @@ class AudioPlayer(object):
 
         """
 
-        self._filename = filename
+        self._filename = None
         self._show_position = show_position
 
         # Setup the msg_dict for sending messages to the child process.
