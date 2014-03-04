@@ -160,7 +160,7 @@ class VorbisFile(AudioIO):
 
         vorbis_file = _vorbisfile.OggVorbis_File()
 
-        filename = filename.encode()
+        filename = filename
 
         if _vorbisfile.ov_fopen(filename, _vorbisfile.byref(vorbis_file)) < 0:
             raise IOError('Error opening file: %s' % filename)
@@ -171,7 +171,7 @@ class VorbisFile(AudioIO):
         self._channels = info.contents.channels
         self._rate = info.contents.rate
 
-        vendor = comments.contents.vendor.decode('ascii', 'ignore')
+        vendor = comments.contents.vendor
         self._info_dict['Vendor'] = vendor
 
         # Get comments from file.
@@ -183,7 +183,7 @@ class VorbisFile(AudioIO):
             # Exit loop after the last comment.
             if not comment: break
 
-            comment_list = comment.decode('utf8', 'replace').split('=')
+            comment_list = comment.split('=')
 
             # Handle invalid comments (without '=')
             if b'=' not in comment:
@@ -317,7 +317,9 @@ class VorbisFile(AudioIO):
         written = 0
 
         for data_buffer in slice_buffer(data, self._buffer_size):
-            written += self._vorbis_file.write(self._encode(data_buffer))
+            out_data = self._encode(data_buffer)
+            self._vorbis_file.write(out_data)
+            written += len(out_data)
 
         return written
 

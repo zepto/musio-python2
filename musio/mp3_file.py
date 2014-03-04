@@ -197,7 +197,7 @@ class MP3File(AudioIO):
         mpg123_handle = _mpg123.mpg123_new(None, _mpg123.byref(err))
         _check(err)
 
-        if _check(_mpg123.mpg123_open(mpg123_handle, filename.encode())):
+        if _check(_mpg123.mpg123_open(mpg123_handle, filename)):
             raise IOError("There was an error opening %s" % filename)
 
         with silence(sys_stderr):
@@ -288,7 +288,7 @@ class MP3File(AudioIO):
                     id3_dict.pop(key)
                 elif type(value) is bytes:
                     id3_dict.pop(key)
-                    id3_dict[key.lower()] = value.decode()
+                    id3_dict[key.lower()] = value
             else:
                 id3_dict.pop(key)
                 id3_dict[key.lower()] = value
@@ -393,13 +393,9 @@ class MP3File(AudioIO):
 
         # Add the tags in comment_dict.
         for tag_type, tag in self._comment_dict.items():
-            # Make sure tag is of type bytes.
-            tag = tag.encode() if type(tag) is str else tag
-            if type(tag) is not bytes:
-                tag = str(tag).encode()
             tag_func = getattr(_lame, 'id3tag_set_%s' % tag_type, None)
             if tag_func:
-                if tag_func(self._global_flags, tag) == -1:
+                if tag_func(self._global_flags, bytes(tag)) == -1:
                     err_str = '%s %s out of range' % (tag_type, tag)
                     msg_out("Error in %s: %s" % (__file__, err_str))
 
