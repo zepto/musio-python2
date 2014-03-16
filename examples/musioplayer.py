@@ -113,7 +113,7 @@ def main(args):
             if quit_command: break
 
     except Exception as err:
-        print("Error: %s")
+        print("Error: %s" % err)
     finally:
         # Always stop the player.
         if player.playing:
