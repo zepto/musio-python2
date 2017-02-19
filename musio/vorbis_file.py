@@ -181,7 +181,7 @@ class VorbisFile(AudioIO):
         # Build info dict.
         for comment in comments:
             # Exit loop after the last comment.
-            if not comment: break
+            if not comment or 'metadata' in comment.lower(): break
 
             comment_list = comment.split('=')
 
@@ -191,7 +191,10 @@ class VorbisFile(AudioIO):
 
             comment_list[0] = comment_list[0].lower()
 
-            self._info_dict.update(dict((comment_list,)))
+            try:
+                self._info_dict.update(dict((comment_list,)))
+            except Exception as err:
+                pass
 
         if not self._info_dict.get('name', ''):
             album = self._info_dict.get('album', '')
@@ -316,7 +319,7 @@ class VorbisFile(AudioIO):
 
         written = 0
 
-        for data_buffer in slice_buffer(data, self._buffer_size):
+        for data_buffer in slice_buffer(data, self.buffer_size):
             out_data = self._encode(data_buffer)
             self._vorbis_file.write(out_data)
             written += len(out_data)

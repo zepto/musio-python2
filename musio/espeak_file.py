@@ -91,6 +91,9 @@ class EspeakFile(AudioIO):
 
         super(EspeakFile, self).__init__(filename, 'r', 16, rate, 1)
 
+        # Make the buffer big to avoid underruns.
+        self._buffer_size = 16384
+
         self._voice = voice
         self.voice = voice
 
@@ -104,9 +107,6 @@ class EspeakFile(AudioIO):
         _espeak.espeak_SetSynthCallback(self._espeak_synth_callback)
 
         self._closed = False
-
-        # Placeholder so bool(self) will be True.
-        self._length = 1
 
     def _open(self):
         """ _open() -> Open the classes file and set it up for read/write

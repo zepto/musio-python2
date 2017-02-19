@@ -35,6 +35,11 @@ from os.path import abspath as os_abspath
 from os.path import dirname as os_dirname
 from ctypes.util import find_library as ctypes_find_library
 
+try:
+    from .magic import magic as _magic
+except OSError:
+    _magic = None
+
 from .io_base import AudioIO, DevIO
 
 # Codec cache dictionary
@@ -349,11 +354,13 @@ def open_file(filename, mode='r', mod_path=[],
         codec = get_codec(filename, mod_path=mod_path, blacklist=blacklist,
                           cached=False)
         if not codec:
-            raise IOError("Filetype not supported.")
+            raise IOError("Error opening codec %s." % codec)
 
         try:
             open_codec = codec(filename, mode=mode, **kwargs)
+            open_codec.loops = kwargs.get('loops', -1)
         except IOError as err:
+            return_err = err
             print('Blacklisting (%s) because of error: %s' % (codec, err))
 
             mod_name = '%s.py' % codec.__module__.split('.')[-1]
@@ -371,18 +378,36 @@ def open_device(fileobj, mode='w', mod_path=[],
     """
 
     blacklist = kwargs.get('blacklist', [])
+    dev_name = kwargs.get('device', 'default')
+    rate = kwargs.get('rate', fileobj.rate)
 
-    # Get the supported device
-    device = get_io(fileobj, mod_path=mod_path, blacklist=blacklist)
+    while True:
+        # Get the supported device
+        device = get_io(fileobj, mod_path=mod_path, blacklist=blacklist,
+                        cached=False)
 
-    if not device:
-        print("Audio format not supported.")
-        return None
+        if not device:
+            raise IOError("Error opening device %s." % device)
 
-    # Open and return the device.
-    return device(mode=mode, rate=fileobj.rate, channels=fileobj.channels,
-                  depth=fileobj.depth, bigendian=fileobj.bigendian,
-                  unsigned=fileobj.unsigned, floatp=fileobj.floatp)
+        # Open and return the device.
+        try:
+            result =  device(mode=mode, rate=rate, channels=fileobj.channels,
+                            depth=fileobj.depth, bigendian=fileobj.bigendian,
+                            unsigned=fileobj.unsigned, floatp=fileobj.floatp,
+                            device=dev_name, three_byte=fileobj.three_byte)
+            break
+        except Exception as err:
+            return_err = err
+            print('Blacklisting (%s) because of error: %s' % (device, err))
+
+            mod_name = '%s.py' % device.__module__.split('.')[-1]
+
+            # Add the module to the blacklist.
+            blacklist.append(mod_name)
+            continue
+
+    return result
+
 
 
 @contextmanager
@@ -461,3 +486,31 @@ def py_silence(new_stdout=None,
         # Return the fd back to its original state.
         sys.stdout = old_stdout
         sys.stderr = old_stderr
+
+class Magic(object):
+    """ Magic object for testing string encoding.
+
+    """
+
+    def __init__(self, flags=1024):
+        """ Magic(flags=magic.MAGIC_MIME_ENCODING) -> Object for testing text
+        encoding.
+
+        """
+
+        if not _magic:
+            return None
+
+        self._magic = _magic.magic_open(flags)
+        if _magic.magic_load(self._magic, None) != 0:
+            print("Error: %s" % _magic.magic_error(self._magic).decode())
+
+    def check(self, data):
+        """ Return the encoding of data.
+
+        """
+
+        if not _magic:
+            return b'utf8'
+
+        return _magic.magic_buffer(self._magic, data, len(data))

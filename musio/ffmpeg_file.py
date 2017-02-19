@@ -29,10 +29,10 @@ from .io_util import msg_out
 
 from .import_util import LazyImport
 
-_av = LazyImport('ffmpeg._av', globals(), locals(), ['_av'], 1)
+_av = LazyImport('ffmpeg.av', globals(), locals(), ['av'], 1)
 
 __supported_dict = {
-    'ext': ['.*', '.flv', '.iflv', '.wma', '.wmv', '.avi', '.mpg'],
+    'ext': ['.webm', '.flv', '.iflv', '.wma', '.wmv', '.avi', '.mpg', '.m4a'],
     'protocol': ['http'],
     'handler': 'FFmpegFile',
     'dependencies': {
@@ -110,7 +110,7 @@ class FFmpegFile(AudioIO):
 
         """
 
-        filename = filename.encode()
+        filename = filename.encode('utf-8', 'surrogateescape')
 
         # Initialize ffmpeg.
         _av.avcodec_register_all()
@@ -133,9 +133,6 @@ class FFmpegFile(AudioIO):
         #                                    None))
         # Deprecated.
         # self._check(_av.av_find_stream_info(format_context))
-
-        # Dump the file info.
-        #info = _av.dump_format(format_context, 0, filename, 0)
 
         nb_streams = format_context.contents.nb_streams
         streams = format_context.contents.streams
@@ -309,6 +306,10 @@ class FFmpegFile(AudioIO):
                                                      frame,
                                                      _av.byref(got_frame),
                                                      av_packet)
+
+                # Exit loop if no data was decoded.
+                if data_len < 0:
+                    break
 
                 # Don't finish the loop if we didn't get a frame.
                 # if not got_frame:

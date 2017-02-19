@@ -34,8 +34,10 @@ def main(args):
     from time import sleep as time_sleep
     from termios import tcgetattr, tcsetattr, ECHO, ICANON, TCSANOW
     from termios import VMIN, VTIME
+    from os.path import splitext as os_splitext
 
     from musio.player_util import AudioPlayer
+    from musio.io_util import open_file
 
     if args['debug']:
         from musio import io_util
@@ -43,6 +45,11 @@ def main(args):
 
     # Pop the filenames list out of the args dict.
     filenames = args.pop('filename')
+
+    # Recursively get all the files.
+    recurse = args.pop('recurse')
+    if recurse:
+        filenames = get_files(filenames)
 
     # Start player with no filename, and set the loops.
     player = AudioPlayer(**args)
@@ -66,16 +73,29 @@ def main(args):
         # Loop over the filenames playing each one with the same
         # AudioPlayer object.
         for filename in filenames:
+            # if filename[-3:] not in ['mp3']:
+            #     continue
+            # Skip unsupported files.
+            try:
+                temp = open_file(filename, soundfont=args.get('soundfont', ''))
+                temp.close()
+            except Exception as err:
+                print(err)
+                continue
+
+            filename_bytes = filename.encode('utf-8', 'surrogateescape')
+            filename_printable = filename_bytes.decode('utf-8', 'ignore')
+
             # Open next file.
             try:
                 player.open(filename, **args)
                 player.loops = args['loops']
             except IOError as err:
-                print("Unsupported audio format: %s" % args['filename'])
+                print("Unsupported audio format: %s" % filename_printable)
                 return 1
 
             if args['show_position']:
-                print("\nPlaying: %s" % filename)
+                print("\nPlaying: %s" % filename_printable)
                 print(player)
 
             # Start the playback.
@@ -90,8 +110,11 @@ def main(args):
                 if r:
                     command = r[0].readline().lower()
                 else:
-                    time_sleep(0.1)
-                    continue
+                    try:
+                        time_sleep(0.1)
+                        continue
+                    except KeyboardInterrupt:
+                        break
 
                 # Handle input commands.
                 if command.startswith('p') or command.startswith(' '):
@@ -115,14 +138,42 @@ def main(args):
     except Exception as err:
         print("Error: %s" % err)
     finally:
-        # Always stop the player.
-        if player.playing:
-            player.stop()
+        try:
+            # Always stop the player.
+            if player.playing:
+                player.stop()
+        except BrokenPipeError:
+            pass
 
         # Re-set the terminal state.
         tcsetattr(sys_stdin, TCSANOW, normal)
 
     return 0
+
+
+def get_files(file_list):
+    """ Returns a list of all the files in filename.
+
+    """
+
+    from os.path import isdir as os_isdir
+    from os.path import isdir as os_isfile
+    from os.path import join as os_join
+    from os import walk as os_walk
+    from pathlib import Path
+
+    out_list = []
+    ext = ['.mp3', '.flac', '.ogg', '.s3m', '.mod', '.xm', '.it']
+
+    for name in file_list:
+        if os_isdir(name):
+            for root, sub, files in os_walk(name):
+                join_list = [os_join(root, f) for f in files if Path(f.lower()).suffix in ext]
+                out_list.extend(join_list)
+        else:
+            out_list.append(name)
+
+    return out_list
 
 
 if __name__ == '__main__':
@@ -136,21 +187,61 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', action='store', default=[],
                         type=lambda a: a.split(','), help='Codec path',
                         dest='mod_path')
-    parser.add_argument('-b', '--blacklist', action='store', default=[],
-                        type=lambda a: a.split(','), help='Blacklist a Codec',
+    parser.add_argument('-b', '--blacklist', action='append', default=[],
+                        help='Blacklist a Codec',
                         dest='blacklist')
     parser.add_argument('-s', '--soundfont', action='store',
-                        default='/usr/share/soundfonts/fluidr3/FluidR3GM.SF2',
+                        default='/usr/share/soundfonts/FluidR3_GM.sf2',
                         help='Soundfont to use when playing midis',
                         dest='soundfont')
     parser.add_argument('-q', '--quiet', action='store_false', default=True,
                         help='Don\'t show playback percentage.',
                         dest='show_position')
-    parser.add_argument('-d', '--debug', action='store_true', default=False,
+    parser.add_argument('--debug', action='store_true', default=False,
                         help='Enable debug error messages.',
                         dest='debug')
+    parser.add_argument('-d', '--device', action='store', default='default',
+                        help='Specify the device.',
+                        dest='device')
+    parser.add_argument('-r', '--recursive', action='store_true', default=False,
+                        help='Recurse through all directories.',
+                        dest='recurse')
+    parser.add_argument('--list-devices', action='store_true', default=False,
+                        help='List available devices.',
+                        dest='list_devices')
     parser.add_argument(dest='filename', nargs='+')
     args = parser.parse_args()
 
-    if args.filename:
-        main(args.__dict__)
+    if args.list_devices:
+        try:
+            from musio.portaudio import portaudio
+            from musio.io_util import silence
+            from sys import stderr as sys_stderr
+
+            _portaudio = portaudio.Portaudio()
+
+            # Silence stderr
+            with silence(sys_stderr):
+                _portaudio.initialize()
+                dev_count = _portaudio.device_count
+                for i in range(dev_count):
+                    dev_name = _portaudio.device_name(i)
+                    print(i, dev_name)
+        except:
+            from musio.alsa import control
+            hints = control.POINTER(control.c_void_p)()
+            err = control.snd_device_name_hint(-1, b'pcm', control.byref(hints))
+            for i in hints:
+                if not i:
+                    break
+                name = control.snd_device_name_get_hint(i, b'NAME').decode()
+                desc = control.snd_device_name_get_hint(i, b'DESC').decode()
+                print('%s: %s' % (name, desc))
+    else:
+        if args.filename:
+            if args.blacklist:
+                # Fix comma seperated input.
+                for i, j in enumerate(args.blacklist):
+                    if ',' in j:
+                        args.blacklist.extend(args.blacklist.pop(i).split(','))
+            main(args.__dict__)

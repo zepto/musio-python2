@@ -150,8 +150,8 @@ class AACDecoder(object):
         # Initialize the decoder and get the sample rate and channel
         # count.
         ret = self._init(decoder, init_buf, init_size,
-                         _neaacdec.byref(rate),
-                         _neaacdec.byref(channels))
+                                     _neaacdec.byref(rate),
+                                     _neaacdec.byref(channels))
 
         self._rate = rate.value
         self._channels = channels.value
@@ -258,7 +258,7 @@ class AACFile(AudioIO):
 
         self._aac_file = open(filename, 'rb', buffering=0)
 
-        self._length = os_getsize(filename.encode())
+        self._length = os_getsize(filename.encode('utf-8', 'surrogateescape'))
 
         # Read the first 4 bytes from the file, so we can get the
         # channel count, depth, and sample rate of the file.

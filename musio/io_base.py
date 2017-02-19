@@ -29,6 +29,7 @@
 from functools import wraps as functools_wraps
 from io import RawIOBase, SEEK_SET, SEEK_CUR, SEEK_END
 from os.path import basename as os_basename
+from os.path import isfile as os_isfile
 
 # If True errors will only print a message.
 IO_SOFT_ERRORS = True
@@ -128,6 +129,14 @@ class AudioIO(RawIOBase):
 
         super(AudioIO, self).__init__()
 
+        if filename:
+            if 'r' in mode and not os_isfile(filename):
+                if not filename.startswith('http://'):
+                    raise(IOError("%s: No such file or directory" % filename))
+
+        self.three_byte = False
+
+        # self._buffer_size = 8192  # 16384 // (depth // (8 // channels))
         self._buffer_size = 8192  # 16384 // (depth // (8 // channels))
 
         self._filename = filename
@@ -513,6 +522,9 @@ class AudioIO(RawIOBase):
 
         """
 
+        if self._buffer_size <= 0:
+            self._buffer_size = 16384 // (self._depth // (8 // self._channels))
+
         return self._buffer_size
 
     @property
@@ -751,5 +763,8 @@ class DevIO(RawIOBase):
         """ The buffer size.
 
         """
+
+        if self._buffer_size <= 0:
+            self._buffer_size = 16384 // (self._depth // (8 // self._channels))
 
         return self._buffer_size

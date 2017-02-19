@@ -195,8 +195,8 @@ class VorbisComment(_vorbisenc.vorbis_comment):
 
         self.__dict__[key] = value
 
-        key = key
-        value = value
+        key = key.encode('utf8', 'replace')
+        value = value.encode('utf8', 'replace')
 
         return _vorbisenc.vorbis_comment_add_tag(self, key, value)
 

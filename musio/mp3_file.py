@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -23,12 +23,13 @@
 
 """
 
+from os import getenv as os_getenv
 from sys import stderr as sys_stderr
 from array import array
 
 from .io_util import silence, msg_out
 from .io_base import AudioIO, io_wrapper
-from .io_util import slice_buffer
+from .io_util import slice_buffer, Magic
 # from .mpg123 import _mpg123
 from .import_util import LazyImport
 
@@ -63,7 +64,7 @@ def get_genre_list():
         """
 
         try:
-            genre_list[genre_id] = genre.decode()
+            genre_list[genre_id] = genre.decode('utf8', 'replace')
         except:
             print(genre_id)
 
@@ -159,7 +160,10 @@ class MP3File(AudioIO):
 
         """
 
-        repr_str = "filename='%(_filename)s', mode=%(_mode)s, depth=%(_depth)s, rate=%(_rate)s, channels=%(_channels)s, unsigned=%(_unsigned)s, quality=%(_quality)s, comment_dict=%(_comment_dict)s" % self
+        if self._mode == 'r':
+            repr_str = "filename='%(_filename)s', mode=%(_mode)s, depth=%(_depth)s, rate=%(_rate)s, channels=%(_channels)s, unsigned=%(_unsigned)s" % self
+        else:
+            repr_str = "filename='%(_filename)s', mode=%(_mode)s, depth=%(_depth)s, rate=%(_rate)s, channels=%(_channels)s, unsigned=%(_unsigned)s, quality=%(_quality)s, comment_dict=%(_comment_dict)s" % self
 
         return '%s(%s)' % (self.__class__.__name__, repr_str)
 
@@ -196,7 +200,12 @@ class MP3File(AudioIO):
         mpg123_handle = _mpg123.mpg123_new(None, _mpg123.byref(err))
         _check(err)
 
-        if _check(_mpg123.mpg123_open(mpg123_handle, filename)):
+        try:
+            bytes_filename = filename.encode('utf-8', 'surrogateescape')
+        except AttributeError:
+            bytes_filename = filename
+
+        if _check(_mpg123.mpg123_open(mpg123_handle, bytes_filename)):
             raise IOError("There was an error opening %s" % filename)
 
         with silence(sys_stderr):
@@ -301,8 +310,8 @@ class MP3File(AudioIO):
 
         return out_file
 
-    def _update_info(self):
-        """ Updates the id3 info for the opened mp3.
+    def _get_mpg123_tags(self):
+        """ Use mpg123 to get the id3tags.
 
         """
 
@@ -315,14 +324,17 @@ class MP3File(AudioIO):
         id3_dict = self._info_dict
         for i in ['tag', 'title', 'artist', 'album', 'year', 'comment',
                   'genre']:
-            try:
-                id3_dict[i] = getattr(id3v1.contents, i)
-            except:
-                pass
+            id3_dict[i] = ''
             try:
                 id3_dict[i] = getattr(id3v2.contents, i).contents.p
             except:
-                continue
+                pass
+            try:
+                temp = getattr(id3v1.contents, i)
+                current_i = id3_dict.get(i, b'')
+                id3_dict[i] = temp if len(temp) > len(current_i) else current_i
+            except:
+                pass
 
         try:
             id3_dict['version'] = id3v2.contents.version
@@ -332,6 +344,7 @@ class MP3File(AudioIO):
         try:
             if id3v2.contents.extras > 0:
                 tag_type = id3v2.contents.extra.contents.description.p.decode()
+                tag_type = tag_type.decode('utf8', 'replace')
                 id3_dict[tag_type] = id3v2.contents.extra.contents.text.p
         except:
             pass
@@ -342,16 +355,104 @@ class MP3File(AudioIO):
         except:
             pass
 
+        # from encodings import aliases
+        # encodings = aliases.aliases.values()
+        encodings = ['utf8', 'euc-jp']
+        magic = Magic()
         for key, value in dict(id3_dict.items()).items():
             if type(value) is not int:
                 if not value.strip():
                     id3_dict.pop(key)
                 elif type(value) is bytes:
                     id3_dict.pop(key)
-                    id3_dict[key.lower()] = value
+                    enc = magic.check(value).decode()
+                    enc = os_getenv('MUSIO_LANG', enc)
+                    try:
+                        id3_dict[key.lower()] = value.decode(enc, 'ignore')
+                    except LookupError:
+                        id3_dict[key.lower()] = value.decode('utf8', 'ignore')
+
             else:
                 id3_dict.pop(key)
                 id3_dict[key.lower()] = value
+
+        return id3_dict
+
+    def _get_id3tags(self):
+        """ Use libid3tag to read the id3tags.
+
+        """
+
+        try:
+            import id3tag.id3tag as _id3tag
+        except:
+            return self._get_mpg123_tags()
+
+        bytes_filename = self._filename.encode('utf-8', 'surrogateescape')
+        id3_file = _id3tag.id3_file_open(bytes_filename, 0)
+        id3_tag = _id3tag.id3_file_tag(id3_file)
+        fields_dict = {
+                'title': b'TIT2',
+                'artist': b'TPE1',
+                'album': b'TALB',
+                'track': b'TRCK',
+                'year': b'TDRC',
+                'genre': b'TCON',
+                'subtitle': b'TIT3',
+                'copyright': b'TCOP',
+                'produced': b'TPRO',
+                'orchestra': b'TPE2',
+                'conductor': b'TPE3',
+                'lyricist': b'TEXT',
+                'publisher': b'TPUB',
+                'station': b'TRSN',
+                'encoder': b'TENC',
+                }
+
+        id3_dict = self._info_dict
+
+        for tag_name, tag_id in fields_dict.items():
+            id3_frame = _id3tag.id3_tag_findframe(id3_tag, tag_id, 0)
+            try:
+                assert(id3_frame.contents)
+            except ValueError:
+                continue
+            field = id3_frame.contents.fields[1]
+            try:
+                ucs4 = field.stringlist.strings.contents
+            except ValueError:
+                continue
+            if tag_name == 'genre':
+                ucs4 = _id3tag.id3_genre_name(ucs4)
+            field_val = _id3tag.id3_ucs4_utf8duplicate(ucs4)
+            tag_val = _id3tag.string_at(field_val).decode('utf8', 'replace')
+            id3_dict[tag_name] = tag_val
+
+        i = 0
+        while True:
+            frame = _id3tag.id3_tag_findframe(id3_tag, b'COMM', i)
+            try:
+                assert(frame.contents)
+            except ValueError:
+                break
+            i += 1
+            # ucs4 = _id3tag.id3_field_getstring(_id3tag.id3_frame_field(frame, 2))
+            ucs4 = _id3tag.id3_field_getfullstring(_id3tag.id3_frame_field(frame, 3))
+            field_val = _id3tag.id3_ucs4_utf8duplicate(ucs4)
+            tag_val = _id3tag.string_at(field_val).decode('utf8', 'replace')
+            id3_dict['comment'] = tag_val
+            break
+
+        _id3tag.id3_file_close(id3_file)
+
+        return id3_dict
+
+    def _update_info(self):
+        """ Updates the id3 info for the opened mp3.
+
+        """
+
+        id3_dict = self._get_id3tags()
 
         album = id3_dict.get('album', '')
         artist = id3_dict.get('artist', '')

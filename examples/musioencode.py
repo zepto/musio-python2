@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -48,8 +48,10 @@ def main(args):
 
     filename = args['filename']
     output = os_splitext(os_basename(filename))[0] + '.' + args['filetype']
+    output_bytes = output.encode('utf-8', 'surrogateescape')
+    output_printable = output_bytes.decode('utf-8', 'ignore')
     if os_isfile(output):
-        if raw_input("Overwrite %s (y/n): " % output).lower().startswith('n'):
+        if raw_input("Overwrite %s (y/n): " % output_printable).lower().startswith('n'):
             return
 
     # Save the current terminal state.
@@ -90,6 +92,8 @@ def main(args):
                 in_file.loops = 0
 
                 if args['show_position']:
+                    filename_bytes = filename.encode('utf-8', 'surrogateescape')
+                    filename_printable = filename_bytes.decode('utf-8', 'ignore')
                     print("Encoding: %s to %s" % (filename, output))
                     print(in_file)
 

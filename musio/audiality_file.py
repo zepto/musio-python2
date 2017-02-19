@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -74,8 +74,6 @@ class AgwFile(AudioIO):
 
         self._raw_file = self._open(filename)
 
-        self._length = 1
-
     def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
 
@@ -90,7 +88,7 @@ class AgwFile(AudioIO):
 
         """
 
-        filename = filename.encode()
+        filename = filename.encode('utf-8', 'surrogateescape')
 
         # Stop the audiality library from printing information.
         # redirect_cstd()
@@ -129,8 +127,8 @@ class AgwFile(AudioIO):
 
         # Start playing.
         _agw.music_play(1, agw_id)
-        _agw.ady_channel_control(0, -2, 2, agw_id)
-        _agw.ady_channel_play(0, 0, _agw.c_float(60.0), _agw.c_float(1.0))
+        # _agw.ady_channel_control(0, -2, 2, agw_id)
+        # _agw.ady_channel_play(0, 0, _agw.c_float(60.0), _agw.c_float(1.0))
 
         self._agw_id = agw_id
 

@@ -507,12 +507,12 @@ class FluidsynthFile(AudioIO):
     # Only reading is supported
     _supported_modes = 'r'
 
-    def __init__(self, filename, soundfont, rate=44100, gain=1.0,
+    def __init__(self, filename, soundfont, rate=44100, gain=0.2,
                  reverb={'roomsize': 0.2, 'damping': 0.0, 'width': 0.5,
                          'level': 0.9},
                  chorus={'nr': 3, 'level': 2.0, 'speed': 0.3, 'depth_ms': 8.0,
                          'type': 0}, **kwargs):
-        """ FluidsynthFile(filename, soundfont, rate=44100, gain=1.0,
+        """ FluidsynthFile(filename, soundfont, rate=44100, gain=0.2,
         reverb=(0.2, 0.0, 0.5, 0.9), chorus=(3, 2.0, 0.3, 8.0, 0)) ->
         Initialize the playback settings of the player.
 
@@ -552,10 +552,6 @@ class FluidsynthFile(AudioIO):
         if not self._open(filename, soundfont):
             raise IOError("Error loading midi '%s' and soundfont '%s'" % \
                           (filename, soundfont))
-
-        # Otherwise it won't be a valid file object.  
-        # (bool(self) == False)
-        self._length = 1
 
     def __repr__(self):
         """ __repr__ -> Returns a python expression to recreate this instance.
@@ -652,7 +648,7 @@ class FluidsynthFile(AudioIO):
         """
 
         # Convert midi name to bytes object so the ctypes function can use it.
-        filename = filename.encode('utf8', 'replace')
+        filename = filename.encode('utf-8', 'surrogateescape')
 
         # Check if filename is a valid midi.
         if not self._player.is_midifile(filename):

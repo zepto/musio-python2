@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -28,7 +28,7 @@ from multiprocessing import Process, Manager, Pipe
 from io import SEEK_SET, SEEK_CUR, SEEK_END
 from functools import wraps as functools_wraps
 from platform import python_implementation
-from os.path import isfile as os_isfile
+from time import sleep as time_sleep
 
 py_imp = python_implementation()
 
@@ -100,11 +100,13 @@ class AudioPlayer(object):
 
         """
 
-        self._filename = None
+        self._filename = filename
         self._show_position = show_position
 
         # Setup the msg_dict for sending messages to the child process.
         self._msg_dict = Manager().dict()
+
+        self._control_dict = {}
 
         # Create a pipe for sending and receiving messages.
         self._control_conn, self._player_conn = Pipe()
@@ -118,8 +120,8 @@ class AudioPlayer(object):
 
         """
 
-        if not self.playing:
-            return repr(self)
+        # Return nothing if no file is open.
+        if not self._filename: return ''
 
         # Wait for the stream to open.
         while 'info' not in self._msg_dict: pass
@@ -166,7 +168,11 @@ class AudioPlayer(object):
 
         """
 
-        self.stop()
+        if self._control_dict.get('playing', False):
+            try:
+                self.stop()
+            except IOError:
+                pass
 
     def __len__(self):
         """ The length of the file if it has one.
@@ -187,10 +193,6 @@ class AudioPlayer(object):
 
             """
 
-            if not self._filename:
-                print("No file.")
-                return None
-
             if not self.playing:
                 print("%(filename)s is not playing." % self._msg_dict)
                 return None
@@ -205,94 +207,153 @@ class AudioPlayer(object):
         """
 
         # Open the file to play.
-        with open_file(cached=True, **msg_dict) as fileobj:
+        try:
+            with open_file(cached=True, **msg_dict) as fileobj:
 
-            # Put the file info in msg_dict.
-            msg_dict['info'] = str(fileobj)
-            msg_dict['length'] = fileobj.length
+                # Put the file info in msg_dict.
+                msg_dict['info'] = str(fileobj)
+                msg_dict['length'] = fileobj.length
 
-            # Open an audio output device that can handle the data from
-            # fileobj.
-            with open_device(fileobj, 'w', cached=True, **msg_dict) as device:
+                if fileobj._rate < 44100:
+                    # if py_imp == 'PyPy':
+                    #     blacklist = msg_dict.get('blacklist', [])
+                    #     blacklist.append('portaudio')
+                    #     msg_dict['blacklist'] = blacklist
+                    # else:
+                    import audioop
 
-                # Set the default number of loops to infinite.
-                fileobj.loops = msg_dict.get('loops', -1)
+                    # msg_dict['rate'] = 44100
+                    state = None
 
-                # Initialize variable.
-                buf = b'\x00' * device.buffer_size
-                written = 0
+                # Open an audio output device that can handle the data
+                # from fileobj.
+                device = open_device(fileobj, 'w', cached=True, **msg_dict)
+                try:
 
-                # Loop until stopped or nothing read or written.
-                while msg_dict['playing'] and (buf or msg_dict['paused']):
-                    # Print the stream position.
-                    if msg_dict.get('show_position', False):
-                        # Only print the position if the stream has a
-                        # length.
-                        if fileobj.length > 0:
-                            # Calculate the percentage played.
-                            pos = (fileobj.position * 100) / float(fileobj.length)
+                    # Set the default number of loops to infinite.
+                    fileobj.loops = msg_dict.get('loops', -1)
 
-                            # Make the string.
-                            pos_str = 'Position: %.2f%%' % pos
+                    # Initialize variable.
+                    buf = '\x00' * device.buffer_size
+                    written = 0
 
-                            # Find the length of the string.
-                            format_len = len(pos_str) + 2
+                    # Loop until stopped.
+                    while msg_dict.get('playing', True):
+                        # Stop if the read buffer is empty or player is
+                        # not paused.
+                        if not (buf or msg_dict.get('paused', False)):
+                            break
 
-                            # Print the string and after erasing the old
-                            # one using ansi escapes.
-                            if py_imp == 'PyPy':
-                                # Running in pypy which doesn't have the
-                                # flush parameter in the print function.
+                        # Print the stream position.
+                        if msg_dict.get('show_position', False):
+                            # Only print the position if the stream has a
+                            # length.
+                            if fileobj.length > 0:
+                                # Calculate the percentage played.
+                                pos = (fileobj.position * 100) / float(fileobj.length)
+
+                                # Make the string.
+                                pos_str = 'Position: %.2f%%' % pos
+
+                                # Find the length of the string.
+                                format_len = len(pos_str) + 2
+
+                                # Print the string and after erasing the old
+                                # one using ansi escapes.
                                 print('\033[%dD\033[K%s' % (format_len,
                                     pos_str), end='')
                                 sys_stdout.flush()
+
+                        # Keep playing if not paused.
+                        if not msg_dict.get('paused', False):
+                            # Re-open the device after comming out of
+                            # paused state.
+                            if device.closed:
+                                device = open_device(fileobj, 'w', cached=True,
+                                                     **msg_dict)
+
+                            # Read the next buffer full of data.
+                            try:
+                                buf = fileobj.readline()
+                            except KeyboardInterrupt:
+                                break
+
+                            # if device._rate != fileobj._rate \
+                            #         and py_imp != 'PyPy' and fileobj._rate != 0:
+                            if device._rate != fileobj._rate \
+                                    and fileobj._rate != 0:
+                                # Convert the input sample rate to that of
+                                # the output device.
+                                buf, state = audioop.ratecv(buf,
+                                                            fileobj._width,
+                                                            fileobj._channels,
+                                                            fileobj._rate,
+                                                            int(device._rate),
+                                                            state)
+
+                            # Filler for end of partial buffer to elminiate
+                            # end of audio noise.
+                            if type(buf) == bytes:
+                                filler = '\x00' * (device.buffer_size - len(buf))
                             else:
-                                print('\033[%dD\033[K%s' % (format_len,
-                                    pos_str), end='')
-                                sys_stdout.flush()
+                                filler = ''
 
-                    # Keep playing if not paused.
-                    if not msg_dict.get('paused', False):
-                        # Read the next buffer full of data.
-                        buf = fileobj.readline()
+                            # Write buf.
+                            try:
+                                written = device.write(buf + filler)
+                            except KeyboardInterrupt:
+                                break
+                        else:
+                            # Close the device when paused and sleep to
+                            # open the audio for another process and
+                            # save cpu cycles.
+                            if not device.closed:
+                                device.close()
 
-                        # Filler for end of partial buffer to elminiate
-                        # end of audio noise.
-                        buf_filler = b'\x00' * (device.buffer_size - len(buf))
+                            time_sleep(0.05)
 
-                        # Write buf.
-                        written = device.write(buf + buf_filler)
-                    else:
-                        # Write a buffer of null bytes so the audio
-                        # system can keep its buffer full.
-                        device.write(b'\x00' * device.buffer_size)
+                            # Write a buffer of null bytes so the audio
+                            # system can keep its buffer full.
+                            # device.write(b'\x00' * device.buffer_size)
 
-                    # Get and process any commands from the parent process.
-                    if pipe.poll():
-                        # Get the data into temp.
-                        command = pipe.recv()
+                        # Get and process any commands from the parent process.
+                        if pipe.poll():
+                            # Get the data into temp.
+                            command = pipe.recv()
 
-                        if 'getposition' in command:
-                            pipe.send(fileobj.position)
-                        elif 'setposition' in command:
-                            fileobj.position = command['setposition']
-                        elif 'getloops' in command:
-                            pipe.send(fileobj.loops)
-                        elif 'setloops' in command:
-                            fileobj.loops = command['setloops']
-                        elif 'getloopcount' in command:
-                            pipe.send(fileobj.loop_count)
+                            if 'getposition' in command:
+                                pipe.send(fileobj.position)
+                            elif 'setposition' in command:
+                                fileobj.position = command['setposition']
+                            elif 'getloops' in command:
+                                pipe.send(fileobj.loops)
+                            elif 'setloops' in command:
+                                fileobj.loops = command['setloops']
+                            elif 'getloopcount' in command:
+                                pipe.send(fileobj.loop_count)
+                except Exception as err:
+                    print(err)
+                finally:
+                    if not device.closed:
+                        device.close()
 
-        # Set playing to False for the parent.
-        msg_dict['playing'] = False
+        except IOError as err:
+            from time import sleep
+            msg_dict['error'] = err
+            msg_dict['info'] = ''
+            msg_dict['length'] = 0
+            print(err)
+        finally:
+            try:
+                # Set playing to False for the parent.
+                msg_dict['playing'] = False
+            except BrokenPipeError:
+                pass
 
     def open(self, filename, **kwargs):
         """ open(filename) -> Open an audio file to play.
 
         """
-
-        if not os_isfile(filename):
-            return False
 
         # Stop the current file from playing.
         self.stop()
@@ -309,6 +370,8 @@ class AudioPlayer(object):
         self._msg_dict['filename'] = filename
         self._msg_dict.update(kwargs)
 
+        self._control_dict.update(self._msg_dict)
+
         # Pause it so when we call play later it will start the player
         # but not the audio playback.  Call play again to start audio
         # playback.
@@ -322,9 +385,6 @@ class AudioPlayer(object):
         """ play() -> Start playback.
 
         """
-
-        if not self._filename:
-            return None
 
         if not self._msg_dict.get('playing', False):
             # Set playing to True for the child process.
@@ -340,13 +400,12 @@ class AudioPlayer(object):
             # Un-pause if paused.
             self._msg_dict['paused'] = False
 
+        self._control_dict.update(self._msg_dict)
+
     def stop(self):
         """ stop() -> Stop playback.
 
         """
-
-        if not self._filename:
-            return None
 
         if self._msg_dict.get('playing', False):
             # Stop playback.
@@ -358,6 +417,8 @@ class AudioPlayer(object):
             # Un-Pause.
             self._msg_dict['paused'] = False
 
+        self._control_dict.update(self._msg_dict)
+
     def pause(self):
         """ pause() -> Pause playback.
 
@@ -365,6 +426,15 @@ class AudioPlayer(object):
 
         # Pause playback.
         self._msg_dict['paused'] = True
+        self._control_dict.update(self._msg_dict)
+
+    @property
+    def error(self):
+        """ True if playing.
+
+        """
+
+        return self._msg_dict.get('error', False)
 
     @property
     def paused(self):
