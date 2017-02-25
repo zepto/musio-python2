@@ -82,7 +82,7 @@ def main(args):
                 # temp.close()
                 temp = get_codec(filename, blacklist=['all'])
                 if temp == DummyFile:
-                    raise(IOError(f"File {filename} not supported."))
+                    raise(IOError("File {filename} not supported.".format(**locals())))
             except Exception as err:
                 print(err)
                 continue
