@@ -82,6 +82,7 @@ class Oss(DevIO):
         """
 
         return self._dsp.write(data)
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     @io_wrapper
     def read(self, size):
@@ -90,6 +91,7 @@ class Oss(DevIO):
         """
 
         return self._dsp.read(size)
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _open(self):
         """ open -> Open the pcm audio output.

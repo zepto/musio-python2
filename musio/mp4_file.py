@@ -179,6 +179,7 @@ class Mp4File(AudioIO):
 
         # Only return the requested amount of data.
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.

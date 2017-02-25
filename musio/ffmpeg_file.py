@@ -346,6 +346,7 @@ class FFmpegFile(AudioIO):
 
         # Make sure we return only the number of bytes requested.
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _resample(self, frame):
         """ Resample the data in frame and return a byte string of the result.

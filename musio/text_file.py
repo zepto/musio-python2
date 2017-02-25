@@ -150,6 +150,7 @@ class TextFile(AudioIO):
         """
 
         return self._fileobj.write(data)
+    write.__annotations__ = {'data': unicode, 'return': int}
 
     @io_wrapper
     def readline(self, size=-1):
@@ -161,6 +162,7 @@ class TextFile(AudioIO):
             return self.read(self._buffer_size)
         else:
             return self.read(self._buffer_size)[:size]
+    readline.__annotations__ = {'size': int, 'return': unicode}
 
     @io_wrapper
     def readlines(self, count=-1):
@@ -186,6 +188,7 @@ class TextFile(AudioIO):
         self._index += count % ((self._length - slice_start) + count)
 
         return lines.replace('\n', ' ')
+    readlines.__annotations__ = {'count': int, 'return': unicode}
 
     @io_wrapper
     def read(self, size):
@@ -202,6 +205,7 @@ class TextFile(AudioIO):
                 data = self.read(size)
 
         return data
+    read.__annotations__ = {'size': int, 'return': unicode}
 
     def close(self):
         """ Close file.

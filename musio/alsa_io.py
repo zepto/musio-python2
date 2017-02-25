@@ -174,6 +174,7 @@ class Alsa(DevIO):
 
         # Return the length of the data written.
         return datalen
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     @io_wrapper
     def read(self, size):
@@ -204,6 +205,7 @@ class Alsa(DevIO):
 
         # Only return size number of bytes.
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _open_pcm(self, mode):
         """ Returns an open pcm device opened with mode.

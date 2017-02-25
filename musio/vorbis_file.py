@@ -261,6 +261,7 @@ class VorbisFile(AudioIO):
 
         # Only return the amount asked for.
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _read_close(self):
         """ close -> Closes and cleans up.
@@ -325,6 +326,7 @@ class VorbisFile(AudioIO):
             written += len(out_data)
 
         return written
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     def _fill_buffer(self, data):
         """ fill_buffer(data) -> Fill the dsp buffer with data.

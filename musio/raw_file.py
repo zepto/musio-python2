@@ -89,6 +89,7 @@ class RawFile(AudioIO):
         """
 
         return self._file.write(data)
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     @io_wrapper
     def read(self, size):
@@ -103,6 +104,7 @@ class RawFile(AudioIO):
                 self.seek(0)
 
         return self._file.read(size)
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.

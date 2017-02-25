@@ -241,6 +241,7 @@ class XMPFile(AudioIO):
 
         # Make sure we return only the number of bytes requested.
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.

@@ -286,6 +286,7 @@ class MikModFile(AudioIO):
         except Exception as err:
             print("Error reading: (%s)" % err)
             return b''
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _load_info(self, module):
         """ _load_info(module) -> Load the information such as the module name

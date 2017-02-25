@@ -34,7 +34,7 @@ from .import_util import LazyImport
 _espeak = LazyImport('espeak._espeak', globals(), locals(), ['_espeak'], 1)
 
 __supported_dict = {
-    'output': [str],
+    'output': [unicode],
     'input': [None],
     'handler': 'Espeak',
     'default': True,

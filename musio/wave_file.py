@@ -105,6 +105,7 @@ class WaveFile(AudioIO):
 
         # Do this so it doesn't return None which is not an int.
         return self._wave.writeframes(data) or 0
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     @io_wrapper
     def read(self, size):
@@ -120,6 +121,7 @@ class WaveFile(AudioIO):
                 self.seek(0)
 
         return self._wave.readframes(size)
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _open(self, filename):
         """ _load(filename) -> Load the specified file.

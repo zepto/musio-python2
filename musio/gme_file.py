@@ -225,6 +225,7 @@ class GMEFile(AudioIO):
                 data = b''
 
         return data
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.

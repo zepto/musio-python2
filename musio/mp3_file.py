@@ -499,6 +499,7 @@ class MP3File(AudioIO):
         self._data = data[size:]
 
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     @io_wrapper
     def write(self, data):
@@ -542,6 +543,7 @@ class MP3File(AudioIO):
 
         # Write data to the file.
         return self._out_file.write(out_data)
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     def close(self):
         """ close -> Closes and cleans up.

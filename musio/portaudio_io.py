@@ -186,6 +186,7 @@ class Portaudio(DevIO):
             self._data = self._data[write_size:]
 
         return datalen
+    write.__annotations__ = {'data': bytes, 'return': int}
 
     @io_wrapper
     def read(self, size):
@@ -201,6 +202,7 @@ class Portaudio(DevIO):
                 class_name = self.__class__.__name__
                 print("(%s.read) %s" % (class_name, err))
         return data[:size]
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _open(self):
         """ open -> Open the pcm audio output.

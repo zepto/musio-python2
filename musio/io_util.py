@@ -253,11 +253,11 @@ def get_io(fileobj, mod_path=[], cached=True,
 
     # Get the file input data type.
     annotations = getattr(getattr(fileobj, 'read'), '__annotations__', {})
-    file_input = annotations.get('return', str)
+    file_input = annotations.get('return', unicode)
 
     # Get the file output data type.
     annotations = getattr(getattr(fileobj, 'write'), '__annotations__', {})
-    file_output = annotations.get('data', str)
+    file_output = annotations.get('data', unicode)
 
     if cached:
         # Load and already cached audio device.

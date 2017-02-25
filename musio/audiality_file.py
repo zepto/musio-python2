@@ -145,6 +145,7 @@ class AgwFile(AudioIO):
         """
 
         return self._raw_file.read(size)
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.

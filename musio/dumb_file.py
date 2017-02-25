@@ -344,6 +344,7 @@ class DumbFile(AudioIO):
             data += self._convert_func(temp_data)
 
         return data
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def _open(self):
         """ _open(filename) -> Load the specified file.

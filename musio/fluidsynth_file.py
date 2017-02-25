@@ -690,6 +690,7 @@ class FluidsynthFile(AudioIO):
         size //= self._channels * 2
 
         return self._synth.read_s16(size)
+    read.__annotations__ = {'size': int, 'return': bytes}
 
     def close(self):
         """ close -> Closes and cleans up.
