@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: sw=4:ts=4:sts=4:fdm=indent:fdl=0:
 # -*- coding: UTF8 -*-
 #
@@ -28,10 +28,10 @@ from distutils.core import setup
 setup(
     name='musio',
     packages=['musio', 'musio.audiality', 'musio.alsa', 'musio.dumb',
-              'musio.espeak', 'musio.faad', 'musio.ffmpeg',
-              'musio.fluidsynth', 'musio.gme', 'musio.lame', 'musio.mikmod',
-              'musio.modplug', 'musio.mp4v2', 'musio.mpg123', 'musio.ogg',
-              'musio.portaudio', 'musio.xmp'],
+              'musio.espeak', 'musio.faad', 'musio.ffmpeg', 'musio.flac',
+              'musio.fluidsynth', 'musio.gme', 'musio.id3tag', 'musio.lame',
+              'musio.magic', 'musio.mikmod', 'musio.modplug', 'musio.mp4v2',
+              'musio.mpg123', 'musio.ogg', 'musio.portaudio', 'musio.xmp'],
     version='0.5.0',
     description='Audio I/O library',
     long_description=open('README.mkd').read(),
