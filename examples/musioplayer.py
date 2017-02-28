@@ -146,7 +146,7 @@ def main(args):
             # Always stop the player.
             if player.playing:
                 player.stop()
-        except BrokenPipeError:
+        except:
             pass
 
         # Re-set the terminal state.
