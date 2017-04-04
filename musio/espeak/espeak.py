@@ -25,6 +25,7 @@
 
 from functools import wraps as functools_wraps
 from sys import stderr as sys_stderr
+from __future__ import print_function
 
 from . import _espeak
 
